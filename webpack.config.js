@@ -1,5 +1,6 @@
 const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 
 module.exports = {
 	entry: './entry.js',
@@ -23,7 +24,7 @@ module.exports = {
 			{
 				test: /\.sss$/i,
 				use: [
-					'style-loader',
+					MiniCssExtractPlugin.loader,
 					{
 						loader: 'css-loader',
 						options: { importLoaders: 1 },
@@ -46,6 +47,7 @@ module.exports = {
 		ignored: /dist/,
 	},
 	plugins: [
+		new MiniCssExtractPlugin(),
 		new HtmlWebpackPlugin({
 			template: './pages/secPage.pug',
 			filename: 'secPage.html',
