@@ -1,0 +1,6 @@
+.hello {
+	font-size: 20px;
+	.kitty {
+		border: 1px solid;
+	}
+}

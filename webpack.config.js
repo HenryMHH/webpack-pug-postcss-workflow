@@ -1,6 +1,10 @@
 const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const TerserPlugin = require('terser-webpack-plugin')
+const HtmlWebpackTagsPlugin = require('html-webpack-tags-plugin')
+const CopyPlugin = require('copy-webpack-plugin')
+const webpack = require('webpack')
 
 module.exports = {
 	entry: './entry.js',
@@ -11,10 +15,6 @@ module.exports = {
 	},
 	context: path.join(__dirname, 'src'),
 
-	optimization: {
-		minimize: false,
-	},
-
 	module: {
 		rules: [
 			{
@@ -22,19 +22,26 @@ module.exports = {
 				use: ['raw-loader', 'pug-plain-loader'],
 			},
 			{
-				test: /\.sss$/i,
+				test: /\.(sss|css)$/i,
 				use: [
-					MiniCssExtractPlugin.loader,
+					{
+						loader: MiniCssExtractPlugin.loader,
+						options: {
+							publicPath: './asset/css/[name].css',
+						},
+					},
 					{
 						loader: 'css-loader',
-						options: { importLoaders: 1 },
+						options: { importLoaders: 2 },
 					},
 					{
 						loader: 'postcss-loader',
 						options: {
-							postcssOptions: {
-								plugins: ['postcss-preset-env', 'precss'],
-								parser: 'sugarss',
+							postcssOptions: (loaderContext) => {
+								//console.log(loaderContext.resourcePath)
+								return {
+									plugins: ['postcss-preset-env', 'precss'],
+								}
 							},
 						},
 					},
@@ -42,19 +49,46 @@ module.exports = {
 			},
 		],
 	},
+
+	optimization: {
+		minimize: false,
+		minimizer: [
+			new TerserPlugin({
+				terserOptions: {
+					compress: false,
+				},
+			}),
+		],
+	},
 	watch: true,
 	watchOptions: {
 		ignored: /dist/,
 	},
 	plugins: [
-		new MiniCssExtractPlugin(),
+		new webpack.ProvidePlugin({
+			$: 'jquery',
+			jQuery: 'jquery',
+		}),
+		new MiniCssExtractPlugin({
+			filename: (filename) => {
+				return `./assets/css/[name].css`
+			},
+		}),
 		new HtmlWebpackPlugin({
 			template: './pages/secPage.pug',
 			filename: 'secPage.html',
+			inject: 'body',
 		}),
 		new HtmlWebpackPlugin({
 			template: './pages/firstPage.pug',
 			filename: 'firstPage.html',
+			inject: 'body',
+		}),
+		new CopyPlugin({
+			patterns: [
+				{ from: './js/plugins', to: './assets/js/plugins' },
+				{ from: './css/plugins', to: './assets/css/plugins' },
+			],
 		}),
 	],
 	devServer: {
@@ -63,3 +97,5 @@ module.exports = {
 		port: 9000,
 	},
 }
+
+//'assets/css/[name].css'
